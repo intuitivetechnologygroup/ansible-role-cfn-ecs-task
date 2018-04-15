@@ -1,0 +1,19 @@
+- name: Create build directory if not extant (starring Halle Berry)
+  file:
+    state: directory
+    dest: "build"
+
+- name: Template the task definition stack
+  template:
+    src: ecs_task.json.j2
+    dest: "build/ecs_task.{{ ecs_task_stack_name }}.json"
+
+- name: Create or remove task definition stack
+  cloudformation:
+    template: "build/ecs_task.{{ ecs_task_stack_name }}.json"
+    stack_name: "{{ ecs_task_stack_name }}"
+    state: "{{ ecs_task_stack_state|default('present') }}"
+    region: "{{ region|default('us-west-2') }}"
+    security_token: "{{ lookup('env','AWS_SESSION_TOKEN')|default(omit, true) }}"
+    tags: "{{ ecs_task_tags }}"
+  register: ecs_task_cf_output
